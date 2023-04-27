@@ -1,0 +1,10 @@
+{
+  "login": {
+    "username": "kevin",
+    "password": "121345"
+  },
+  "logout": {
+    "code": 200,
+    "info": "logout"
+  }
+}

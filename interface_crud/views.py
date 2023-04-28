@@ -1,9 +1,11 @@
+from django.contrib import auth
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
 # Create your views here.
 # 增加文章
 from interface_crud.models import Article, User
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 import json
 
 # from django.http import HttpResponse,JsonResponse
@@ -34,9 +36,68 @@ import json
 #             return  JsonResponse({"status":"BS.400","message":"please check param."})
 
 
+
+from django.shortcuts import render
+from django.http import HttpResponse
+
+# Create your views here.
+def index(request):
+    # return HttpResponse("Hello Django!")
+    return render(request, 'index.html')
+
+# 登录动作
+def login_action1(request):
+    if request.method == 'POST':
+        username = request.POST.get('username', '')
+        password = request.POST.get('password', '')
+        if username == 'admin' and password == 'admin123':
+            # return HttpResponse('login success!')
+            # return HttpResponseRedirect('/event_manage/')
+            # cookie
+            response = HttpResponseRedirect('/event_manage/')
+            # cookie 更类似使用的存折， session类似于银行卡，客户拿到的只是一个银行卡号（即浏览器只保留一个Sessionid），用户的存钱、取钱记录是根据银行卡号保存在银行的系统里（即Web服务器端），只得到一个Sessionid并没有什么意义。
+            # response.set_cookie('user', username, 3600)  # 添加浏览器cookie,user表示写入浏览器的Cookie名，username代表登陆页输入的用户名，3600代表cookie信息在浏览器I帧hong的保持时间，默认为秒
+            # session
+            request.session['user'] = username # 将session信息记录到浏览器中
+            return response
+            # session
+
+        else:
+            return render(request, 'index.html', {'error': 'username or passworderror!'})
+
+
+def login_action(request):
+    if request.method == 'POST':
+        username = request.POST.get('username', '')
+        password = request.POST.get('password', '')
+        user = auth.authenticate(username=username, password=password)
+        if user is not None:
+            auth.login(request, user)  # 登录
+            request.session['user'] = username  # 将session信息记录到浏览器
+            response = HttpResponseRedirect('/event_manage/')
+            return response
+        else:
+            return render(request, 'index.html', {'error': 'username or password error!'})
+
+# 发布会管理
+@login_required
+def event_manage(request):
+    # return render(request, 'event_manage.html')
+    # cookie
+    # username = request.COOKIES.get('user', '')  # 读取浏览器cookie
+    # session
+    username = request.session.get('user', '')  # 读取浏览器session
+    return render(request, "event_manage.html", {"user": username})  # 通过render将cookie和html页面一起返回。
+
+
+
+
+
+
+
+
+
 import hashlib
-
-
 # 获取token
 def get_token(request):
     req = json.loads(request.body)

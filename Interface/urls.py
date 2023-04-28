@@ -14,13 +14,17 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.template.defaulttags import url
 from django.urls import path
 
 
 # InterfaceTestingMock.urls.py
 from django.contrib import admin
 from django.urls import path
-from interface_crud.views import add_article, modify_article, query_article, user_auth, get_token, delete_article
+
+from interface_crud import views
+from interface_crud.views import add_article, modify_article, query_article, user_auth, get_token, delete_article, \
+    index, login_action
 
 # urlpatterns = [
 #     path('admin/', admin.site.urls),
@@ -31,7 +35,7 @@ from interface_crud.views import add_article, modify_article, query_article, use
 
 
 from  interface_crud.views import add_article,modify_article
-
+# URLconf（URL configuration）。这个模块包含URL模式（简单的正则表达式）到视图函数（默认views.py文件中的函数）的简单映射
 urlpatterns = [
 
     path('admin/', admin.site.urls),
@@ -41,6 +45,15 @@ urlpatterns = [
     path('query/', query_article),
 
     path('articles/<int:article_id>', modify_article),
-    path('del_articles/<int:article_id>', delete_article)
+    path('del_articles/<int:article_id>', delete_article),
+
+    path('', index),
+    path("index", index),
+    path('accounts/login/', views.index),
+    path('login_action/', views.login_action),
+    path('event_manage/', views.event_manage)
+    # url(r'^login_action/$', views.login_action)
 
 ]
+
+

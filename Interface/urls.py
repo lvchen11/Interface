@@ -60,6 +60,8 @@ urlpatterns = [
     # path('api/', include('interface_crud.urls', namespace="interface_crud"))
     path('api/', include(('interface_crud.urls', "interface_crud"))),
 
+    # path('')
+
 
 
 ]

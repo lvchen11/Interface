@@ -1,5 +1,5 @@
 from django.urls import path
-from interface_crud import views_if
+from interface_crud import views_if, views_if_sec
 
 urlpatterns = [
     # interface_crud system interface:
@@ -13,7 +13,12 @@ urlpatterns = [
     # 获取嘉宾签到接口列表数据
     path('get_guest_list/', views_if.get_guest_list, name='get_guest_list'),
     # 获取用户签到信息
-    path('user_sign/', views_if.user_sign, name='user_sign')
+    path('user_sign/', views_if.user_sign, name='user_sign'),
+
+
+    # 开发带Auth接口
+    path('sec_get_event_list/', views_if.get_event_list, name='get_event_list'),
+
 
 ]
 # from django.urls import path

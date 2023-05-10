@@ -4,6 +4,9 @@ from django.core.exceptions import ValidationError
 
 
 # 添加发布会接口
+from interface_crud.views_if_sec import user_auth
+
+
 def add_event(request):
     eid = request.POST.get('id', '')  # 发布会id
     name = request.POST.get('name', '')  # 发布会标题
@@ -39,6 +42,12 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 
 # 查询发布会接口
 def get_event_list(request):
+    auth_result = user_auth(request)  # 调用认证函数
+    if auth_result == "null":
+        return JsonResponse({'status': 10011, 'message': 'user auth null'})
+
+    if auth_result == "fail":
+        return JsonResponse({'status': 10012, 'message': 'user auth fail'})
     eid = request.GET.get("eid", "")  # 发布会id
     name = request.GET.get("name", "")  # 发布会名称
 

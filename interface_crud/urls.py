@@ -18,6 +18,8 @@ urlpatterns = [
 
     # 开发带Auth接口
     path('sec_get_event_list/', views_if.get_event_list, name='get_event_list'),
+    #  开发接口签名 发布会接口
+    path('sec_add_event/', views_if.add_event, name='add_event'),
 
 
 ]

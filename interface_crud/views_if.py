@@ -8,6 +8,17 @@ from interface_crud.views_if_sec import user_auth
 
 
 def add_event(request):
+    # 添加发布会接口---增加签名+时间戳
+    sign_result = user_sign(request)
+    if sign_result == "error":
+        return JsonResponse({'status': 10011, 'message': 'request error'})
+    elif sign_result == "sign null":
+        return JsonResponse({'status': 10012, 'message': 'user sign null'})
+    elif sign_result == "timeout":
+        return JsonResponse({'status': 10013, 'message': 'user sign timeout'})
+    elif sign_result == "sign fail":
+        return JsonResponse({'status': 10014, 'message': 'user sign error'})
+
     eid = request.POST.get('id', '')  # 发布会id
     name = request.POST.get('name', '')  # 发布会标题
     limit = request.POST.get('limit', '')  # 限制人数

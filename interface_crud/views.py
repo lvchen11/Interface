@@ -176,8 +176,6 @@ def logout(request):
 
 
 import hashlib
-
-
 # 获取token
 def get_token(request):
     req = json.loads(request.body)

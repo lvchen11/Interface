@@ -15,14 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.template.defaulttags import url
-from django.urls import path
-
+from django.urls import path, include
 
 # InterfaceTestingMock.urls.py
 from django.contrib import admin
 from django.urls import path
 
-from interface_crud import views
+from interface_crud import views, views_if
 from interface_crud.views import add_article, modify_article, query_article, user_auth, get_token, delete_article, \
     index, login_action
 
@@ -48,11 +47,20 @@ urlpatterns = [
     path('del_articles/<int:article_id>', delete_article),
 
     path('', index),
-    path("index", index),
+    path("index/", index),
     path('accounts/login/', views.index),
     path('login_action/', views.login_action),
-    path('event_manage/', views.event_manage)
+    path('event_manage/', views.event_manage),
     # url(r'^login_action/$', views.login_action)
+    path('search_name/', views.search_name),
+    path('guest_manage/', views.guest_manage),
+    path('sign_index/<eid>/', views.sign_index),
+    path('sign_index_action/<eid>/', views.sign_index_action),
+    path('logout/', views.logout),
+    # path('api/', include('interface_crud.urls', namespace="interface_crud"))
+    path('api/', include(('interface_crud.urls', "interface_crud"))),
+
+
 
 ]
 

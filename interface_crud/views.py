@@ -1,10 +1,11 @@
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.shortcuts import render
 
 # Create your views here.
 # 增加文章
-from interface_crud.models import Article, User
+from interface_crud.models import Article, User, Event, Guest
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 import json
 
@@ -36,14 +37,15 @@ import json
 #             return  JsonResponse({"status":"BS.400","message":"please check param."})
 
 
-
 from django.shortcuts import render
 from django.http import HttpResponse
+
 
 # Create your views here.
 def index(request):
     # return HttpResponse("Hello Django!")
     return render(request, 'index.html')
+
 
 # 登录动作
 def login_action1(request):
@@ -58,7 +60,7 @@ def login_action1(request):
             # cookie 更类似使用的存折， session类似于银行卡，客户拿到的只是一个银行卡号（即浏览器只保留一个Sessionid），用户的存钱、取钱记录是根据银行卡号保存在银行的系统里（即Web服务器端），只得到一个Sessionid并没有什么意义。
             # response.set_cookie('user', username, 3600)  # 添加浏览器cookie,user表示写入浏览器的Cookie名，username代表登陆页输入的用户名，3600代表cookie信息在浏览器I帧hong的保持时间，默认为秒
             # session
-            request.session['user'] = username # 将session信息记录到浏览器中
+            request.session['user'] = username  # 将session信息记录到浏览器中
             return response
             # session
 
@@ -79,25 +81,103 @@ def login_action(request):
         else:
             return render(request, 'index.html', {'error': 'username or password error!'})
 
+
+# 发布会管理
+# @login_required
+# def event_manage(request):
+#     # return render(request, 'event_manage.html')
+#     # cookie
+#     # username = request.COOKIES.get('user', '')  # 读取浏览器cookie
+#     # session
+#     username = request.session.get('user', '')  # 读取浏览器session
+#     return render(request, "event_manage.html", {"user": username})  # 通过render将cookie和html页面一起返回。
+
+
 # 发布会管理
 @login_required
 def event_manage(request):
-    # return render(request, 'event_manage.html')
-    # cookie
-    # username = request.COOKIES.get('user', '')  # 读取浏览器cookie
-    # session
-    username = request.session.get('user', '')  # 读取浏览器session
-    return render(request, "event_manage.html", {"user": username})  # 通过render将cookie和html页面一起返回。
+    event_list = Event.objects.all()
+    username = request.session.get('user', '')
+    return render(request, "event_manage.html", {"user": username, "events": event_list})
 
 
+# 发布会名称搜索
+@login_required
+def search_name(request):
+    username = request.session.get('user', '')
+    search_name = request.GET.get("name", "")
+    event_list = Event.objects.filter(name__contains=search_name)
+    return render(request, "event_manage.html", {"user": username, "events": event_list})
 
 
+# 嘉宾管理
+# @login_required
+# def guest_manage(request):
+#     username = request.session.get('user', '')
+#     guest_list = Guest.objects.all()
+#     return render(request, "guest_manage.html", {"user": username, "guests": guest_list})
+
+# 嘉宾管理
+@login_required
+def guest_manage(request):
+    username = request.session.get('user', '')
+    guest_list = Guest.objects.all()
+    paginator = Paginator(guest_list, 2)
+    page = request.GET.get('page')
+    try:
+        contacts = paginator.page(page)
+    except PageNotAnInteger:
+        # 如果page不是整数，取第一页面数据
+        contacts = paginator.page(1)
+    except EmptyPage:
+        # 如果page不在范围，取最后一页面
+        contacts = paginator.page(paginator.num_pages)
+    return render(request, "guest_manage.html", {"user": username, "guests": contacts})
 
 
+from django.shortcuts import render, get_object_or_404
 
+
+# 签到页面
+@login_required
+def sign_index(request, eid):
+    event = get_object_or_404(Event, id=eid)
+    return render(request, 'sign_index.html', {'event': event})
+
+
+# 签到动作
+@login_required
+def sign_index_action(request, eid):
+    event = get_object_or_404(Event, id=eid)
+    phone = request.POST.get('phone', '')
+    print(phone)
+    result = Guest.objects.filter(phone=phone)
+    if not result:
+        return render(request, 'sign_index.html', {'event': event, 'hint': 'phone error. 手机号错误，请重新输入！'})
+
+    result = Guest.objects.filter(phone=phone, event_id=eid)
+    if not result:
+        return render(request, 'sign_index.html', {'event': event, 'hint': 'event id or phone error. 手机号与发布会不匹配'})
+
+    result = Guest.objects.get(phone=phone, event_id=eid)
+    if result.sign:
+        return render(request, 'sign_index.html', {'event': event, 'hint': "user has sign in. 嘉宾已经签过到了！"})
+    else:
+        Guest.objects.filter(phone=phone, event_id=eid).update(sign='1')
+        return render(request, 'sign_index.html', {'event': event, 'hint': 'sign in success! 未签到，登入成功', 'guest': result})
+
+
+# 退出登录
+@login_required
+def logout(request):
+    auth.logout(request)  # 退出登录
+    response = HttpResponseRedirect('/index/')
+    return response
 
 
 import hashlib
+
+
 # 获取token
 def get_token(request):
     req = json.loads(request.body)
@@ -236,4 +316,3 @@ def delete_article(request, article_id):
                 return JsonResponse({"status": "BS.300", "msg": "article is not exists,fail to delete."})
         else:
             return HttpResponse("方法错误，你应该使用DELETE请求方式")
-
